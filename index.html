@@ -89,9 +89,11 @@
             loader.classList.remove('hidden');
             searchBtn.disabled = true;
 
+            const targetApi = 'https://rootx-osint.in/?type=tg_num&key=FREE_API&query=' + encodeURIComponent(query);
+            const proxyUrl = 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(targetApi);
+
             try {
-                // Aapka apna backend serverless route
-                const response = await fetch(`/api/lookup?query=${encodeURIComponent(query)}`);
+                const response = await fetch(proxyUrl);
                 const data = await response.json();
 
                 if (data && data.success) {
@@ -100,16 +102,16 @@
                     document.getElementById('resNumber').innerText = (data.country_code || '') + ' ' + (data.number || '');
                     document.getElementById('resCountry').innerText = data.country || 'N/A';
                     document.getElementById('resTgId').innerText = data.tg_id || 'N/A';
-                    document.getElementById('resReqLeft').innerText = (data.req_left ?? 0) + ' / ' + (data.req_total || 0);
+                    document.getElementById('resReqLeft').innerText = (data.req_left !== undefined ? data.req_left : '0') + ' / ' + (data.req_total || '0');
                     document.getElementById('resExpiry').innerText = data.expiry || 'N/A';
                     document.getElementById('resDev').innerText = data.developer || 'N/A';
 
                     resultBox.classList.remove('hidden');
                 } else {
-                    showError(data.msg || "Data nahi mila.");
+                    showError(data.msg || "Data nahi mila ya ID API database me nahi hai.");
                 }
             } catch (error) {
-                showError("Server error ya API unreachable hai.");
+                showError("API server se connect nahi ho pa raha hai.");
             } finally {
                 loader.classList.add('hidden');
                 searchBtn.disabled = false;
