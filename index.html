@@ -4,20 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Number Info Lookup</title>
-    <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center p-4">
 
     <div class="max-w-md w-full bg-gray-800 rounded-xl shadow-2xl p-6 border border-gray-700">
-        <!-- Header -->
         <div class="text-center mb-6">
             <h1 class="text-2xl font-bold text-blue-400">Number Info Lookup</h1>
             <p class="text-gray-400 text-sm mt-1">Kisi bhi number ki jankari fetch karein</p>
         </div>
 
-        <!-- Input Box -->
         <div class="space-y-4">
             <div>
                 <label class="block text-gray-300 text-sm mb-1 font-medium">Telegram ID / Query</label>
@@ -32,16 +29,13 @@
             </button>
         </div>
 
-        <!-- Loading Indicator -->
         <div id="loader" class="hidden text-center my-6">
             <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
             <p class="text-sm text-gray-400 mt-2">Fetching data...</p>
         </div>
 
-        <!-- Error Message -->
         <div id="errorMsg" class="hidden mt-4 p-3 bg-red-900/50 border border-red-500 text-red-200 text-sm rounded-lg text-center"></div>
 
-        <!-- Result Box -->
         <div id="resultBox" class="hidden mt-6 bg-gray-900 p-4 rounded-lg border border-gray-700">
             <div class="flex items-center justify-between pb-3 border-b border-gray-800">
                 <span class="text-sm font-semibold text-green-400" id="resMsg">Details Fetched</span>
@@ -77,7 +71,56 @@
         </div>
     </div>
 
-    <!-- External JavaScript Link -->
-    <script src="script.js"></script>
+    <script>
+        async function fetchData() {
+            const query = document.getElementById('queryInput').value.trim();
+            const loader = document.getElementById('loader');
+            const resultBox = document.getElementById('resultBox');
+            const errorMsg = document.getElementById('errorMsg');
+            const searchBtn = document.getElementById('searchBtn');
+
+            if (!query) {
+                alert("Pehle ID ya Number enter karein!");
+                return;
+            }
+
+            errorMsg.classList.add('hidden');
+            resultBox.classList.add('hidden');
+            loader.classList.remove('hidden');
+            searchBtn.disabled = true;
+
+            try {
+                // Aapka apna backend serverless route
+                const response = await fetch(`/api/lookup?query=${encodeURIComponent(query)}`);
+                const data = await response.json();
+
+                if (data && data.success) {
+                    document.getElementById('resMsg').innerText = data.msg || 'Success';
+                    document.getElementById('responseTime').innerText = data.response_time || '0ms';
+                    document.getElementById('resNumber').innerText = (data.country_code || '') + ' ' + (data.number || '');
+                    document.getElementById('resCountry').innerText = data.country || 'N/A';
+                    document.getElementById('resTgId').innerText = data.tg_id || 'N/A';
+                    document.getElementById('resReqLeft').innerText = (data.req_left ?? 0) + ' / ' + (data.req_total || 0);
+                    document.getElementById('resExpiry').innerText = data.expiry || 'N/A';
+                    document.getElementById('resDev').innerText = data.developer || 'N/A';
+
+                    resultBox.classList.remove('hidden');
+                } else {
+                    showError(data.msg || "Data nahi mila.");
+                }
+            } catch (error) {
+                showError("Server error ya API unreachable hai.");
+            } finally {
+                loader.classList.add('hidden');
+                searchBtn.disabled = false;
+            }
+        }
+
+        function showError(msg) {
+            const errorMsg = document.getElementById('errorMsg');
+            errorMsg.innerText = msg;
+            errorMsg.classList.remove('hidden');
+        }
+    </script>
 </body>
 </html>
